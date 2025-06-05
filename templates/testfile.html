@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Patient Flow System with Billing</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .step {
+            background-color: #f0f0f0;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            padding: 15px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+        .decision {
+            background-color: #fff3cd;
+            border: 1px solid #ffeeba;
+            text-align: center;
+        }
+        button {
+            background-color: #4CAF50;
+            color: white;
+            padding: 10px 15px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button.no {
+            background-color: #f44336;
+        }
+        button.secondary {
+            background-color: #2196F3;
+        }
+        button.back {
+            background-color: #ff9800;
+        }
+        #receipt {
+            display: none;
+            border: 1px dashed #ccc;
+            padding: 20px;
+            margin-top: 20px;
+            background-color: #f9f9f9;
+        }
+        #cart {
+            margin: 20px 0;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        input[type="text"], select {
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        .example-products {
+            margin: 15px 0;
+            padding: 10px;
+            background-color: #f8f9fa;
+            border-radius: 5px;
+        }
+        .example-products h4 {
+            margin-top: 0;
+        }
+        .patient-info {
+            margin-bottom: 15px;
+        }
+        .patient-info input {
+            margin-bottom: 10px;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            #receipt {
+                display: block !important;
+                border: none;
+            }
+        }
+        
+        /* Popup styles */
+        .popup-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .popup-content {
+            background-color: white;
+            padding: 20px;
+            border-radius: 5px;
+            width: 400px;
+            max-width: 90%;
+            box-shadow: 0 0 10px rgba(0,0,0,0.3);
+        }
+        .popup-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Patient Flow System with Billing</h1>
+    
+    <div id="step1" class="step">
+        <h2>Step 1: Patient Information</h2>
+        <div class="patient-info">
+            <label for="firstName">First Name:</label>
+            <input type="text" id="firstName" placeholder="Patient's first name">
+            
+            <label for="lastName">Last Name:</label>
+            <input type="text" id="lastName" placeholder="Patient's last name">
+            
+            <label for="patientType">Patient Type:</label>
+            <select id="patientType">
+                <option value="OPD">OPD (Outpatient)</option>
+                <option value="IPD">IPD (Inpatient)</option>
+                <option value="ForeignOPD">Foreign OPD</option>
+                <option value="ForeignIPD">Foreign IPD</option>
+                <option value="Staff">Staff</option>
+            </select>
+        </div>
+        <button onclick="nextStep('step1', 'step1b')">Next</button>
+    </div>
+    
+    <div id="step1b" class="step" style="display: none;">
+        <button class="back" onclick="goBack('step1b', 'step1')">Back</button>
+        <h2>Product Selection</h2>
+        <div>
+            <input type="text" id="searchProduct" placeholder="Search products..." oninput="searchProducts()">
+            <div id="searchResults" style="margin-top: 10px;"></div>
+        </div>
+        
+        <div class="example-products">
+            <h4>Popular Products:</h4>
+            <div id="popularProducts" style="display: flex; flex-wrap: wrap; gap: 10px;"></div>
+        </div>
+        
+        <div id="cart">
+            <h3>Shopping Cart</h3>
+            <table id="cartTable">
+                <thead>
+                    <tr>
+                        <th>Product</th>
+                        <th>Price</th>
+                        <th>Qty</th>
+                        <th>Total</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody id="cartItems">
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <td colspan="3" style="text-align: right;"><strong>Total:</strong></td>
+                        <td id="cartTotal">0.00</td>
+                        <td></td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+        <button onclick="showDiscussionPopup()">Proceed to Discussion</button>
+    </div>
+    
+    <!-- Popup for discussion -->
+    <div id="discussionPopup" class="popup-overlay">
+        <div class="popup-content decision">
+            <h2>Discussion Needed?</h2>
+            <p>Does this case require further discussion?</p>
+            <div class="popup-buttons">
+                <button onclick="saveAndShowReceipt()">Yes</button>
+                <button class="no" onclick="hideDiscussionPopup(); endFlow()">No</button>
+            </div>
+        </div>
+    </div>
+    
+    <div id="receipt" class="step">
+        <h2>Patient Receipt</h2>
+        <p><strong>Patient Name:</strong> <span id="receiptName"></span></p>
+        <p><strong>Patient Type:</strong> <span id="receiptType"></span></p>
+        <p><strong>Date:</strong> <span id="receiptDate"></span></p>
+        
+        <h3>Items:</h3>
+        <table id="receiptItems">
+            <thead>
+                <tr>
+                    <th>Product</th>
+                    <th>Price</th>
+                    <th>Qty</th>
+                    <th>Total</th>
+                </tr>
+            </thead>
+            <tbody>
+            </tbody>
+            <tfoot>
+                <tr>
+                    <td colspan="3" style="text-align: right;"><strong>Grand Total:</strong></td>
+                    <td id="receiptTotal">0.00</td>
+                </tr>
+            </tfoot>
+        </table>
+        
+        <button class="no-print" onclick="window.print()">Print Receipt</button>
+        <button class="no-print" onclick="endFlow()">Finish</button>
+    </div>
+    
+    <div id="end" class="step" style="display: none;">
+        <h2>Process Complete</h2>
+        <p>Thank you for using the Patient Flow System.</p>
+        <button onclick="resetFlow()">Start Over</button>
+    </div>
+
+    <script>
+        let products = [];
+        let cart = [];
+        let currentPatient = {};
+        
+        // Load products from CSV
+        async function loadProducts() {
+            try {
+                const response = await fetch('/static/items.csv');
+                if (!response.ok) {
+                    throw new Error('Failed to load products');
+                }
+                const csvData = await response.text();
+                
+                // Parse CSV
+                const lines = csvData.split('\n');
+                const headers = lines[0].split(',').map(h => h.trim());
+                
+                for (let i = 1; i < lines.length; i++) {
+                    if (lines[i].trim() === '') continue;
+                    
+                    const values = lines[i].split(',');
+                    const product = {};
+                    
+                    for (let j = 0; j < headers.length; j++) {
+                        product[headers[j]] = values[j] ? values[j].trim() : '';
+                    }
+                    
+                    // Convert price strings to numbers
+                    product.OPD = parseFloat(product.OPD) || 0;
+                    product.IPD = parseFloat(product.IPD) || 0;
+                    product.ForeignOPD = parseFloat(product.ForeignOPD) || 0;
+                    product.ForeignIPD = parseFloat(product.ForeignIPD) || 0;
+                    product.Staff = parseFloat(product.Staff) || 0;
+                    
+                    // Use "ชื่อ" as "name"
+                    product.name = product['ชื่อ'] || `Product ${i}`;
+                    
+                    products.push(product);
+                }
+                
+                console.log('Products loaded:', products);
+                showPopularProducts();
+            } catch (error) {
+                console.error('Error loading products:', error);
+                // Fallback to some default products if CSV fails
+                products = [
+                    { name: "IV Catheter No.18", OPD: 65.00, IPD: 78.00, ForeignOPD: 75.00, ForeignIPD: 90.00, Staff: 12.00 },
+                    { name: "Syringe 5ml", OPD: 8.00, IPD: 10.00, ForeignOPD: 12.00, ForeignIPD: 15.00, Staff: 5.00 },
+                    { name: "Gauze Pad", OPD: 5.00, IPD: 6.00, ForeignOPD: 7.00, ForeignIPD: 8.00, Staff: 3.00 },
+                    { name: "Alcohol Swab", OPD: 2.00, IPD: 2.50, ForeignOPD: 3.00, ForeignIPD: 3.50, Staff: 1.00 },
+                    { name: "Bandage", OPD: 10.00, IPD: 12.00, ForeignOPD: 15.00, ForeignIPD: 18.00, Staff: 5.00 }
+                ];
+                showPopularProducts();
+            }
+        }
+        
+        // Show popular products
+        function showPopularProducts() {
+            const popularDiv = document.getElementById('popularProducts');
+            let html = '';
+            
+            // Show first 5 products or all if less than 5
+            const popularToShow = products.slice(0, 5);
+            
+            popularToShow.forEach(product => {
+                html += `
+                <button onclick="addToCart('${product.name.replace(/'/g, "\\'")}')">
+                    ${product.name} (${product.OPD}฿)
+                </button>`;
+            });
+            
+            popularDiv.innerHTML = html;
+        }
+        
+        // Save transaction log
+        async function saveLog() {
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const patientType = document.getElementById('patientType').value;
+            const now = new Date();
+            
+            const logEntry = {
+                id: now.getTime(), // Using timestamp as simple ID
+                fname: firstName,
+                lname: lastName,
+                date: now.toISOString(),
+                type: patientType,
+                products: cart.map(item => `${item.name} (${item.quantity})`).join('; '),
+                total: cart.reduce((sum, item) => sum + (item.price * item.quantity), 0)
+            };
+            
+            try {
+                const response = await fetch('/save-log', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(logEntry)
+                });
+                
+                if (!response.ok) {
+                    throw new Error('Failed to save log');
+                }
+                
+                const result = await response.json();
+                console.log('Log saved:', result);
+                return true;
+            } catch (error) {
+                console.error('Error saving log:', error);
+                return false;
+            }
+        }
+        
+        // Go back function
+        function goBack(current, previous) {
+            document.getElementById(current).style.display = 'none';
+            document.getElementById(previous).style.display = 'block';
+        }
+        
+        // Modified nextStep to store patient info
+        function nextStep(current, next) {
+            if (current === 'step1') {
+                currentPatient = {
+                    firstName: document.getElementById('firstName').value,
+                    lastName: document.getElementById('lastName').value,
+                    type: document.getElementById('patientType').value,
+                    date: new Date()
+                };
+            }
+            
+            document.getElementById(current).style.display = 'none';
+            document.getElementById(next).style.display = 'block';
+        }
+        
+        function searchProducts() {
+            const searchTerm = document.getElementById('searchProduct').value.toLowerCase();
+            const resultsDiv = document.getElementById('searchResults');
+            
+            if(searchTerm.length < 2) {
+                resultsDiv.innerHTML = '';
+                return;
+            }
+            
+            const filtered = products.filter(p => 
+                p.name.toLowerCase().includes(searchTerm)
+            );
+            
+            let html = '<table style="width:100%">';
+            filtered.forEach(product => {
+                const patientType = document.getElementById('patientType').value;
+                const price = product[patientType] || 0;
+                
+                html += `
+                <tr>
+                    <td>${product.name}</td>
+                    <td>${price.toFixed(2)}฿</td>
+                    <td>
+                        <button onclick="addToCart('${product.name.replace(/'/g, "\\'")}')">Add to Cart</button>
+                    </td>
+                </tr>`;
+            });
+            html += '</table>';
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function addToCart(productName) {
+            const product = products.find(p => p.name === productName);
+            if(!product) return;
+            
+            const existingItem = cart.find(item => item.name === productName);
+            const patientType = document.getElementById('patientType').value;
+            const price = product[patientType] || 0;
+            
+            if(existingItem) {
+                existingItem.quantity += 1;
+            } else {
+                cart.push({
+                    name: productName,
+                    price: price,
+                    quantity: 1
+                });
+            }
+            
+            updateCart();
+        }
+        
+        function updateCart() {
+            const cartBody = document.getElementById('cartItems');
+            let html = '';
+            let total = 0;
+            
+            cart.forEach((item, index) => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>
+                        <input type="number" min="1" value="${item.quantity}" 
+                               onchange="updateQuantity(${index}, this.value)">
+                    </td>
+                    <td>${itemTotal.toFixed(2)}</td>
+                    <td><button onclick="removeFromCart(${index})">Remove</button></td>
+                </tr>`;
+            });
+            
+            cartBody.innerHTML = html;
+            document.getElementById('cartTotal').textContent = total.toFixed(2);
+        }
+        
+        function updateQuantity(index, newQuantity) {
+            const qty = parseInt(newQuantity);
+            if(qty > 0) {
+                cart[index].quantity = qty;
+                updateCart();
+            }
+        }
+        
+        function removeFromCart(index) {
+            cart.splice(index, 1);
+            updateCart();
+        }
+        
+        // Show discussion popup
+        function showDiscussionPopup() {
+            document.getElementById('discussionPopup').style.display = 'flex';
+        }
+        
+        // Hide discussion popup
+        function hideDiscussionPopup() {
+            document.getElementById('discussionPopup').style.display = 'none';
+        }
+        
+        // Combined save and show receipt function
+        async function saveAndShowReceipt() {
+            hideDiscussionPopup();
+            const success = await saveLog();
+            if (success) {
+                showReceipt();
+            } else {
+                alert('Error saving log. Please try again.');
+            }
+        }
+        
+        function showReceipt() {
+            // Fill receipt data
+            const firstName = document.getElementById('firstName').value;
+            const lastName = document.getElementById('lastName').value;
+            const patientType = document.getElementById('patientType');
+            
+            document.getElementById('receiptName').textContent = `${firstName} ${lastName}`;
+            document.getElementById('receiptType').textContent = 
+                patientType.options[patientType.selectedIndex].text;
+            document.getElementById('receiptDate').textContent = new Date().toLocaleString();
+            
+            // Add items to receipt
+            const receiptBody = document.getElementById('receiptItems').querySelector('tbody');
+            let html = '';
+            let total = 0;
+            
+            cart.forEach(item => {
+                const itemTotal = item.price * item.quantity;
+                total += itemTotal;
+                
+                html += `
+                <tr>
+                    <td>${item.name}</td>
+                    <td>${item.price.toFixed(2)}</td>
+                    <td>${item.quantity}</td>
+                    <td>${itemTotal.toFixed(2)}</td>
+                </tr>`;
+            });
+            
+            receiptBody.innerHTML = html;
+            document.getElementById('receiptTotal').textContent = total.toFixed(2);
+            
+            document.getElementById('receipt').style.display = 'block';
+            document.getElementById('step1b').style.display = 'none';
+        }
+        
+        function endFlow() {
+            document.getElementById('receipt').style.display = 'none';
+            document.getElementById('step1b').style.display = 'none';
+            document.getElementById('end').style.display = 'block';
+            cart = []; // Clear cart
+        }
+        
+        function resetFlow() {
+            // Clear form
+            document.getElementById('firstName').value = '';
+            document.getElementById('lastName').value = '';
+            document.getElementById('patientType').selectedIndex = 0;
+            document.getElementById('searchProduct').value = '';
+            document.getElementById('searchResults').innerHTML = '';
+            
+            // Reset UI
+            document.getElementById('end').style.display = 'none';
+            document.getElementById('step1').style.display = 'block';
+        }
+        
+        // Load products when page loads
+        document.addEventListener('DOMContentLoaded', loadProducts);
+    </script>
+</body>
+</html>
