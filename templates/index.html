@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Patient Information & Billing System</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="static/style.css">
 </head>
 <body>
 
@@ -18,7 +18,6 @@
             <button class="tab-button" onclick="loadTransactionHistory(); openTab('historyTab')">History</button>
         </div>
 
-        <!-- Tab 1: Patient & Billing Info -->
         <div id="patientTab" class="tab active">
             <div class="section">
                 <h2>Patient & Procedure Information</h2>
@@ -62,39 +61,35 @@
 
             <div class="section">
                 <h2>Billing & Payment</h2>
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
-                    <h3 style="margin: 0;">Payment Details</h3>
-                    <button class="secondary" onclick="printDepositSlip()">🖨️ Print Deposit Slip</button>
-                </div>
                 <div class="form-grid">
-                     <div>
-                        <label for="hospitalFee">Hospital Fee (ค่าโรงพยาบาล):</label>
-                        <input type="number" id="hospitalFee" placeholder="0.00" value="0" oninput="updateBillingSummary()">
-                    </div>
-                    <div>
-                        <label for="depositAmount">Deposit (มัดจำ):</label>
-                        <input type="number" id="depositAmount" placeholder="0.00" value="0" oninput="updateBillingSummary()">
-                    </div>
-                    <div style="grid-column: 1 / -1;">
-                        <label>Payment Method (วิธีชำระเงิน):</label>
-                        <div class="checkbox-group">
-                            <input type="radio" id="payCash" name="paymentMethod" value="Cash" checked> <label for="payCash">เงินสด (Cash)</label>
-                            <input type="radio" id="payTransfer" name="paymentMethod" value="Transfer"> <label for="payTransfer">เงินโอน (Transfer)</label>
+                        <div>
+                            <label for="hospitalFee">Hospital Fee (ค่าโรงพยาบาล):</label>
+                            <input type="number" id="hospitalFee" placeholder="0.00" value="0" oninput="updateBillingSummary()">
                         </div>
-                    </div>
-                     <div style="grid-column: 1 / -1;">
-                        <label>Review Status:</label>
-                        <div class="checkbox-group">
-                             <input type="checkbox" id="statusDeposit" name="reviewStatus" value="มัดจำ"> <label for="statusDeposit">มัดจำ</label>
-                             <input type="checkbox" id="statusEye" name="reviewStatus" value="ทำตา"> <label for="statusEye">ทำตา</label>
-                             <input type="checkbox" id="statusReview" name="reviewStatus" value="รีวิว"> <label for="statusReview">รีวิว</label>
-                             <input type="checkbox" id="statusNoReview" name="reviewStatus" value="ไม่รีวิว"> <label for="statusNoReview">ไม่รีวิว</label>
+                        <div>
+                            <label for="depositAmount">Deposit (มัดจำ):</label>
+                            <input type="number" id="depositAmount" placeholder="0.00" value="0" oninput="updateBillingSummary()">
                         </div>
-                    </div>
-                     <div style="grid-column: 1 / -1;">
-                        <label for="comment">Comment (หมายเหตุ):</label>
-                        <textarea id="comment" rows="3" placeholder="เพิ่มหมายเหตุเพิ่มเติม..."></textarea>
-                    </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label>Payment Method (วิธีชำระเงิน):</label>
+                            <div class="checkbox-group">
+                                <input type="radio" id="payCash" name="paymentMethod" value="Cash" checked> <label for="payCash">เงินสด (Cash)</label>
+                                <input type="radio" id="payTransfer" name="paymentMethod" value="Transfer"> <label for="payTransfer">เงินโอน (Transfer)</label>
+                            </div>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label>Review Status:</label>
+                            <div class="checkbox-group">
+                                    <input type="checkbox" id="statusDeposit" name="reviewStatus" value="มัดจำ"> <label for="statusDeposit">มัดจำ</label>
+                                    <input type="checkbox" id="statusEye" name="reviewStatus" value="ทำตา"> <label for="statusEye">ทำตา</label>
+                                    <input type="checkbox" id="statusReview" name="reviewStatus" value="รีวิว"> <label for="statusReview">รีวิว</label>
+                                    <input type="checkbox" id="statusNoReview" name="reviewStatus" value="ไม่รีวิว"> <label for="statusNoReview">ไม่รีวิว</label>
+                            </div>
+                        </div>
+                        <div style="grid-column: 1 / -1;">
+                            <label for="comment">Comment (หมายเหตุ):</label>
+                            <textarea id="comment" rows="3" placeholder="เพิ่มหมายเหตุเพิ่มเติม..."></textarea>
+                        </div>
                 </div>
             </div>
             
@@ -114,24 +109,23 @@
             </div>
         </div>
 
-        <!-- Tab 2: Products -->
         <div id="productsTab" class="tab">
             <button class="back" onclick="openTab('patientTab')">← Back to Patient Info</button>
             <h2>Product Selection</h2>
-             <div class="search-container" style="margin-top: 20px;">
-                <div class="quick-search-buttons">
-                    <button class="quick-search-btn" onclick="quickSearch('IV')">IV</button>
-                    <button class="quick-search-btn" onclick="quickSearch('Syringe')">Syringe</button>
-                    <button class="quick-search-btn" onclick="quickSearch('Gauze')">Gauze</button>
-                    <button class="quick-search-btn" onclick="quickSearch('Alcohol')">Alcohol</button>
-                    <button class="quick-search-btn" onclick="quickSearch('แพ็คเกจ')">แพ็คเกจ</button>
+                <div class="search-container" style="margin-top: 20px;">
+                    <div class="quick-search-buttons">
+                        <button class="quick-search-btn" onclick="quickSearch('IV')">IV</button>
+                        <button class="quick-search-btn" onclick="quickSearch('Syringe')">Syringe</button>
+                        <button class="quick-search-btn" onclick="quickSearch('Gauze')">Gauze</button>
+                        <button class="quick-search-btn" onclick="quickSearch('Alcohol')">Alcohol</button>
+                        <button class="quick-search-btn" onclick="quickSearch('แพ็คเกจ')">แพ็คเกจ</button>
+                    </div>
+                    <div class="search-input-container">
+                        <input type="text" id="searchProduct" placeholder="ค้นหาสินค้าด้วยชื่อ หรือรหัส..." oninput="searchProducts()" autocomplete="off">
+                        <button class="clear-search" onclick="clearSearch()">×</button>
+                    </div>
+                    <div id="searchResults" style="border: 1px solid #ddd; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
                 </div>
-                <div class="search-input-container">
-                    <input type="text" id="searchProduct" placeholder="ค้นหาสินค้าด้วยชื่อ หรือรหัส..." oninput="searchProducts()" autocomplete="off">
-                    <button class="clear-search" onclick="clearSearch()">×</button>
-                </div>
-                <div id="searchResults" style="border: 1px solid #ddd; max-height: 200px; overflow-y: auto; margin-top: 5px;"></div>
-            </div>
 
             <div id="cart">
                 <h3>Shopping Cart</h3>
@@ -147,17 +141,15 @@
                     </tfoot>
                 </table>
             </div>
-             <div style="text-align: right; margin-top: 20px;">
-                <button onclick="generateReceipt()">Generate Receipt →</button>
-            </div>
+                <div style="text-align: right; margin-top: 20px;">
+                    <button onclick="generateReceipt()">Generate Receipt →</button>
+                </div>
         </div>
         
-        <!-- Tab 3: Receipt -->
         <div id="receiptTab" class="tab">
-            <button class="back no-print" onclick="openTab('productsTab')">← Back to Products</button>
+             <button class="back no-print" onclick="openTab('productsTab')">← Back to Products</button>
             
             <div class="receipt-preview-container">
-                <!-- This content is populated by JS -->
             </div>
 
             <div class="no-print" style="margin-top: 30px; text-align: right;">
@@ -166,71 +158,88 @@
             </div>
         </div>
 
-        <!-- Tab 4: History -->
         <div id="historyTab" class="tab">
-             <h2>Transaction History</h2>
+            <h2>Transaction History</h2>
             <input type="text" id="historySearch" placeholder="Search by patient name, doctor, or date..." oninput="searchHistory()" style="width: 100%; margin-bottom: 20px;">
             <div id="historyResults"><p>Loading history...</p></div>
         </div>
     </div>
 
-    <!-- Hidden Printable Templates -->
     <div id="receipt" class="print-area">
-        <h2>ใบเสร็จรับเงิน / Receipt</h2>
-        <hr>
-        <p><strong>Receipt ID:</strong> <span data-field="receiptId"></span> | <strong>Date:</strong> <span data-field="receiptDate"></span></p>
+        <div class="receipt-body">
+            <h2>ใบเสร็จรับเงิน / Receipt</h2>
+            <hr>
+            <p><strong>Receipt ID:</strong> <span data-field="receiptId"></span> | <strong>Date:</strong> <span data-field="receiptDate"></span></p>
 
-        <div class="receipt-grid">
-            <div>
-                <h4>Patient Details</h4>
-                <p><strong>Name:</strong> <span data-field="receiptName"></span></p>
-                <p><strong>Age:</strong> <span data-field="receiptAge"></span></p>
-                <p><strong>Type:</strong> <span data-field="receiptType"></span></p>
+            <div class="receipt-grid">
+                <div>
+                    <h4>Patient Details</h4>
+                    <p><strong>Name:</strong> <span data-field="receiptName"></span></p>
+                    <p><strong>Age:</strong> <span data-field="receiptAge"></span></p>
+                    <p><strong>Type:</strong> <span data-field="receiptType"></span></p>
+                </div>
+                <div>
+                    <h4>Procedure Details</h4>
+                    <p><strong>Doctor:</strong> <span data-field="receiptDoctor"></span></p>
+                    <p><strong>Consultant:</strong> <span data-field="receiptConsultant"></span></p>
+                    <p><strong>Procedure:</strong> <span data-field="receiptProcedure"></span></p>
+                </div>
             </div>
-            <div>
-                <h4>Procedure Details</h4>
-                <p><strong>Doctor:</strong> <span data-field="receiptDoctor"></span></p>
-                <p><strong>Consultant:</strong> <span data-field="receiptConsultant"></span></p>
-                <p><strong>Procedure:</strong> <span data-field="receiptProcedure"></span></p>
-            </div>
+
+            <h3>Items &amp; Charges</h3>
+            <table id="receiptItemsTable_print">
+                <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
+                <tbody></tbody>
+            </table>
         </div>
 
-        <h3>Items &amp; Charges</h3>
-        <table id="receiptItemsTable_print">
-            <thead><tr><th>Product</th><th>Price</th><th>Qty</th><th>Total</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <div class="receipt-footer">
+            <div class="payment-info">
+                <h4>Payment Information</h4>
+                <p><strong>Payment Method:</strong> <span data-field="receiptPaymentMethod"></span></p>
+                <p><strong>Review Status:</strong> <span data-field="receiptReviewStatus"></span></p>
+                <p><strong>Comment:</strong> <span data-field="comment"></span></p>
+                
+                <div class="signature-group" style="margin-top: 15px;" data-hide-on-screen="true">
+                    <div class="signature" style="margin-bottom: 10px;">
+                        <p style="margin: 0;">.........................................</p>
+                        <p style="margin: 2px 0 0 0; font-size: 8.5pt;">ลายมือชื่อผู้ป่วย (Patient Signature)</p>
+                    </div>
+                    <div class="signature">
+                        <p style="margin: 0;">.........................................</p>
+                        <p style="margin: 2px 0 0 0; font-size: 8.5pt;">ลายมือชื่อหมอ (Doctor Signature)</p>
+                    </div>
+                </div>
+            </div>
 
-        <table class="receipt-summary-table">
-            <tbody>
-                <tr><td>Product Total:</td><td><span data-field="receiptSubtotal">0.00</span> ฿</td></tr>
-                <tr><td>Hospital Fee:</td><td><span data-field="receiptHospitalFee">0.00</span> ฿</td></tr>
-                <tr style="font-weight: bold; border-top: 1px solid #333; border-bottom: 1px solid #333;"><td>Grand Total:</td><td><span data-field="receiptGrandTotal">0.00</span> ฿</td></tr>
-                <tr><td>Deposit Paid:</td><td><span data-field="receiptDeposit">0.00</span> ฿</td></tr>
-                <tr style="font-weight: bold; font-size: 1.1em; color: #c0392b;"><td>Outstanding:</td><td><span data-field="receiptOutstanding">0.00</span> ฿</td></tr>
-            </tbody>
-        </table>
-        <p data-hide-on-screen="true"><strong>Payment Method:</strong> <span data-field="receiptPaymentMethod"></span></p>
-        <p data-hide-on-screen="true"><strong>Review Status:</strong> <span data-field="receiptReviewStatus"></span></p>
-        <p data-hide-on-screen="true"><strong>Comment:</strong> <span data-field="comment"></span></p>
+            <div class="payment-details">
+                <h4>Payment Details</h4>
+                <table class="receipt-summary-table">
+                    <tbody>
+                        <tr><td>Product Total:</td><td><span data-field="receiptSubtotal">0.00</span> ฿</td></tr>
+                        <tr><td>Hospital Fee:</td><td><span data-field="receiptHospitalFee">0.00</span> ฿</td></tr>
+                        <tr style="font-weight: bold; border-top: 1px solid #333; border-bottom: 1px solid #333;"><td>Grand Total:</td><td><span data-field="receiptGrandTotal">0.00</span> ฿</td></tr>
+                        <tr><td>Deposit Paid:</td><td><span data-field="receiptDeposit">0.00</span> ฿</td></tr>
+                        <tr style="font-weight: bold; font-size: 1.1em; color: #c0392b;"><td>Outstanding:</td><td><span data-field="receiptOutstanding">0.00</span> ฿</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        
+        <div class="receipt-note">
+            <p><strong>หมายเหตุ / Note:</strong></p>
+            <ul>
+                <li>กรุณาตรวจสอบรายการให้ถูกต้อง / Please check all items carefully.</li>
+                <li>ใบเสร็จรับเงินฉบับนี้จะสมบูรณ์ต่อเมื่อมีลายเซ็นผู้รับเงินครบถ้วน / This receipt is valid only with the receiver's signature.</li>
+            </ul>
+        </div>
+
+        <div class="receipt-document-footer">
+            <span data-field="footerText">Hospital</span>
+            <span data-field="footerPage">โรงพยาบาลเฉพาะทางจักษุ</span>
+        </div>
     </div>
 
-    <div id="depositSlip" class="print-area">
-        <h2>ใบรับเงินมัดจำ / Deposit Receipt</h2>
-        <hr>
-        <p><strong>Date:</strong> <span data-field="depositDate"></span></p>
-        <p><strong>Patient Name:</strong> <span data-field="depositName"></span></p>
-        <p><strong>Procedure:</strong> <span data-field="depositProcedure"></span></p>
-        <br>
-        <p style="font-size: 1.2em;"><strong>จำนวนเงินมัดจำ (Deposit Amount):</strong></p>
-        <p style="font-size: 1.5em; text-align: center; border: 1px solid black; padding: 10px; margin-top: 10px;">
-            <span data-field="depositAmount">0.00</span> ฿
-        </p>
-        <br><br>
-        <p>.........................................</p>
-        <p>ผู้รับเงิน (Receiver)</p>
-    </div>
-    
     <script src="static/app.js"></script>
 </body>
 </html>

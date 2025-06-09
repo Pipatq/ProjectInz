@@ -1,9 +1,10 @@
+// --- JAVASCRIPT SECTION ---
 // --- GLOBAL STATE ---
 let productList = [];
 let shoppingCart = [];
 let currentPatientDetails = {};
 let transactionHistory = [];
-let currentlyViewedTransaction = null; 
+let currentlyViewedTransaction = null;
 
 const ALL_HEADERS = [
     'id', 'fname', 'lname', 'date', 'type', 'products', 'total',
@@ -21,7 +22,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 async function loadProducts() {
     try {
-        const response = await fetch('/static/items.csv?t=' + new Date().getTime());
+        const response = await fetch(`${window.location.origin}/static/items.csv?t=${new Date().getTime()}`);
         if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const csvData = await response.text();
         if (!csvData.trim()) {
@@ -62,8 +63,8 @@ function savePatientInfoAndProceed() {
     }
     
     const checkedStatuses = Array.from(document.querySelectorAll('input[name="reviewStatus"]:checked'))
-                                 .map(cb => cb.value)
-                                 .join(',');
+                                      .map(cb => cb.value)
+                                      .join(',');
 
     currentPatientDetails = {
         firstName: firstName,
@@ -122,7 +123,7 @@ function searchProducts() {
         const price = parseFloat(product[document.getElementById('patientType').value] || 0);
         html += `<div class="search-item" style="padding: 10px; cursor: pointer; border-bottom: 1px solid #eee;" onclick="addItemToCart('${product.itemcode}')">
                     [${product.itemcode}] ${product.name} - <strong>${price.toFixed(2)}฿</strong>
-                 </div>`;
+                </div>`;
     });
     resultsDiv.innerHTML = html;
 }
@@ -176,7 +177,7 @@ function removeFromCart(index) {
 
 // --- RECEIPT & SAVING LOGIC (TAB 3) ---
 async function generateReceipt() {
-     if (shoppingCart.length === 0 && !confirm("Cart is empty. Do you want to proceed without any products?")) {
+    if (shoppingCart.length === 0 && !confirm("Cart is empty. Do you want to proceed without any products?")) {
         return;
     }
     await saveTransaction();
@@ -186,8 +187,6 @@ async function generateReceipt() {
 
 async function saveTransaction() {
     const billing = updateBillingSummary();
-    
-    // NOTE: reCAPTCHA is removed for XAMPP simplicity. Add back if needed.
     const transactionData = {
         id: 'TXN-' + Date.now(),
         fname: currentPatientDetails.firstName,
@@ -209,19 +208,18 @@ async function saveTransaction() {
     };
 
     try {
-        const response = await fetch('/save-log', {
+        const response = await fetch(`${window.location.origin}/save-log`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify(transactionData)
         });
-        const result = await response.json();
-        if (!response.ok) throw new Error(result.message || 'Server responded with an error.');
+        if (!response.ok) throw new Error('Server responded with an error.');
         
         console.log('Transaction saved successfully.');
         await loadTransactionHistory(); 
     } catch (error) {
         console.error("Error saving transaction:", error);
-        alert("Could not save transaction: " + error.message);
+        alert("Could not save transaction to server.");
     }
 }
 
@@ -238,11 +236,10 @@ function populateReceiptForDisplay(transactionId, details = currentPatientDetail
     populatePrintableData(clone.id, transactionId, details, cart, transaction);
 }
 
-
 // --- HISTORY LOGIC (TAB 4) ---
 async function loadTransactionHistory() {
     try {
-        const response = await fetch('/static/log.csv?t=' + new Date().getTime());
+        const response = await fetch(`${window.location.origin}/static/log.csv?t=${new Date().getTime()}`);
         if (!response.ok) throw new Error('Failed to load history file.');
         const csvData = await response.text();
         if (csvData.trim() === '') {
@@ -282,29 +279,29 @@ function searchHistory() {
 }
 
 function viewReceiptFromHistory(txnId) {
-     const txn = transactionHistory.find(t => t.id === txnId);
-     if (!txn) { alert("Transaction not found!"); return; }
+        const txn = transactionHistory.find(t => t.id === txnId);
+        if (!txn) { alert("Transaction not found!"); return; }
 
-     currentlyViewedTransaction = txn;
+        currentlyViewedTransaction = txn;
 
-     const detailsForReceipt = {
-        firstName: txn.fname, lastName: txn.lname, type: txn.type, patientAge: txn.patient_age,
-        doctorName: txn.doctor_name, consultant: txn.consultant, procedureInfo: txn.procedure_info,
-        paymentMethod: txn.payment_method, reviewStatus: txn.review_status,
-        comment: txn.comment 
-     };
-     
-     const cartForReceipt = (txn.products || '').split(';').map(p => {
-        const match = p.trim().match(/(.+)\((\d+)\)/);
-        if (!match) return null;
-        const [_, name, quantity] = match;
-        const product = productList.find(prod => prod.name === name.trim()) || {price:0, itemcode:'N/A'};
-        return { ...product, quantity: parseInt(quantity, 10), price: parseFloat(product[txn.type] || 0) };
-     }).filter(Boolean);
-     
-     populateReceiptForDisplay(txn.id, detailsForReceipt, cartForReceipt, txn);
-     
-     openTab('receiptTab'); 
+        const detailsForReceipt = {
+            firstName: txn.fname, lastName: txn.lname, type: txn.type, patientAge: txn.patient_age,
+            doctorName: txn.doctor_name, consultant: txn.consultant, procedureInfo: txn.procedure_info,
+            paymentMethod: txn.payment_method, reviewStatus: txn.review_status,
+            comment: txn.comment 
+        };
+        
+        const cartForReceipt = (txn.products || '').split(';').map(p => {
+            const match = p.trim().match(/(.+)\((\d+)\)/);
+            if (!match) return null;
+            const [_, name, quantity] = match;
+            const product = productList.find(prod => prod.name === name.trim()) || {price:0, itemcode:'N/A'};
+            return { ...product, quantity: parseInt(quantity, 10), price: parseFloat(product[txn.type] || 0) };
+        }).filter(Boolean);
+        
+        populateReceiptForDisplay(txn.id, detailsForReceipt, cartForReceipt, txn);
+        
+        openTab('receiptTab'); 
 }
 
 // --- PRINTING LOGIC ---
@@ -359,45 +356,23 @@ function populatePrintableData(elementId, transactionId, details, cart, transact
 
 function printMainReceipt() {
     const detailsToPrint = currentlyViewedTransaction ? {
-        firstName: currentlyViewedTransaction.fname, lastName: currentlyViewedTransaction.lname, type: currentlyViewedTransaction.type, patientAge: currentlyViewedTransaction.patient_age,
-        doctorName: currentlyViewedTransaction.doctor_name, consultant: currentlyViewedTransaction.consultant, procedureInfo: currentlyViewedTransaction.procedure_info,
-        paymentMethod: currentlyViewedTransaction.payment_method, reviewStatus: currentlyViewedTransaction.review_status,
-        comment: currentlyViewedTransaction.comment 
-     } : currentPatientDetails;
+            firstName: currentlyViewedTransaction.fname, lastName: currentlyViewedTransaction.lname, type: currentlyViewedTransaction.type, patientAge: currentlyViewedTransaction.patient_age,
+            doctorName: currentlyViewedTransaction.doctor_name, consultant: currentlyViewedTransaction.consultant, procedureInfo: currentlyViewedTransaction.procedure_info,
+            paymentMethod: currentlyViewedTransaction.payment_method, reviewStatus: currentlyViewedTransaction.review_status,
+            comment: currentlyViewedTransaction.comment 
+        } : currentPatientDetails;
 
     const cartToPrint = currentlyViewedTransaction ? (currentlyViewedTransaction.products || '').split(';').map(p => {
-        const match = p.trim().match(/(.+)\((\d+)\)/);
-        if (!match) return null;
-        const [_, name, quantity] = match;
-        const product = productList.find(prod => prod.name === name.trim()) || {price:0, itemcode:'N/A'};
-        return { ...product, quantity: parseInt(quantity, 10), price: parseFloat(product[currentlyViewedTransaction.type] || 0) };
-     }).filter(Boolean) : shoppingCart;
+            const match = p.trim().match(/(.+)\((\d+)\)/);
+            if (!match) return null;
+            const [_, name, quantity] = match;
+            const product = productList.find(prod => prod.name === name.trim()) || {price:0, itemcode:'N/A'};
+            return { ...product, quantity: parseInt(quantity, 10), price: parseFloat(product[currentlyViewedTransaction.type] || 0) };
+        }).filter(Boolean) : shoppingCart;
 
     const transactionId = currentlyViewedTransaction ? currentlyViewedTransaction.id : 'TXN-' + Date.now();
 
     populatePrintableData('receipt', transactionId, detailsToPrint, cartToPrint, currentlyViewedTransaction);
-    window.print();
-}
-
-function printDepositSlip() {
-    const depositAmount = parseFloat(document.getElementById('depositAmount').value) || 0;
-    if (depositAmount <= 0) {
-        alert("Please enter a valid deposit amount before printing.");
-        return;
-    }
-    
-    const fields = {
-        depositDate: new Date().toLocaleString('th-TH'),
-        depositName: `${document.getElementById('firstName').value} ${document.getElementById('lastName').value}`,
-        depositProcedure: document.getElementById('procedureInfo').value || 'N/A',
-        depositAmount: depositAmount.toFixed(2)
-    };
-
-    for(const key in fields) {
-        const element = document.querySelector(`#depositSlip [data-field="${key}"]`);
-        if(element) element.textContent = fields[key];
-    }
-    
     window.print();
 }
 
@@ -410,7 +385,7 @@ function parseCsv(csvData, hasHeader = true) {
     if (hasHeader && lines.length < 2) return []; 
     if (!hasHeader && lines.length < 1) return [];
 
-    const headerRow = hasHeader ? lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, '')) : ALL_HEADERS;
+    const headerRow = lines[0].split(',').map(h => h.trim().replace(/^"|"$/g, ''));
     const startIndex = hasHeader ? 1 : 0;
     
     const dataRows = lines.slice(startIndex);
